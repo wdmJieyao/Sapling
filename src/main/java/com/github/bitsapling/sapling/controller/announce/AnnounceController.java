@@ -42,16 +42,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 
 @RestController
@@ -174,32 +165,39 @@ public class AnnounceController {
         long uploaded = Math.max(0, Long.parseLong(gets.get("uploaded")));
         int redundant = Integer.parseInt(Optional.ofNullable(MiscUtil.anyNotNull(gets.get("redundant"), gets.get("redundant_peers"), gets.get("redundant peers"), gets.get("redundant_peers"))).orElse("0"));
         // User permission checks
-        User user = safeParseUser(passkey);
-        if (!StpUtil.hasPermission(user.getId(), "torrent:announce")) {
-            throw new InvalidAnnounceException("Permission Denied");
-        }
-        Torrent torrent = torrentService.getTorrent(infoHash);
-        if (torrent == null) {
-            throw new InvalidAnnounceException("Torrent not registered on this tracker");
-        }
+        // User user = safeParseUser(passkey);
+        User user = new User();
+        user.setId(123435L);
+        user.setUsername("Luke");
+        // if (!StpUtil.hasPermission(user.getId(), "torrent:announce")) {
+        //     throw new InvalidAnnounceException("Permission Denied");
+        // }
+        // Torrent torrent = torrentService.getTorrent(infoHash);
+        // if (torrent == null) {
+        //     throw new InvalidAnnounceException("Torrent not registered on this tracker");
+        // }
         // User had permission to announce torrents
         // Create an announce tasks and drop into background, end this request as fast as possible
+
+        Torrent torrent = new Torrent();
+        torrent.setInfoHash(infoHash);
+        torrent.setId(127389L);
         Set<String> peerIps = new HashSet<>(peerIp);
 
-        if (ipv4 != null) {
-            peerIps.addAll(List.of(ipv4));
-        }
-        if (ipv6 != null) {
-            peerIps.addAll(List.of(ipv6));
-        }
-        List<String> filteredIps = peerIps.stream().filter(this::checkValidIp).toList();
-        if (filteredIps.isEmpty()) {
-            log.info("Client {} announced invalid ips.", user.getUsername());
-            throw new InvalidAnnounceException("Invalid IP address");
-        }
-        for (String filteredIp : filteredIps) {
-            announceBackgroundJob.schedule(new AnnounceService.AnnounceTask(filteredIp, port, infoHash, peerId, uploaded, downloaded, left, event, numWant, user.getId(), compact, noPeerId, supportCrypto, redundant, request.getHeader("User-Agent"), passkey, torrent.getId()));
-        }
+        // if (ipv4 != null) {
+        //     peerIps.addAll(List.of(ipv4));
+        // }
+        // if (ipv6 != null) {
+        //     peerIps.addAll(List.of(ipv6));
+        // }
+        // List<String> filteredIps = peerIps.stream().filter(this::checkValidIp).toList();
+        // if (filteredIps.isEmpty()) {
+        //     log.info("Client {} announced invalid ips.", user.getUsername());
+        //     throw new InvalidAnnounceException("Invalid IP address");
+        // }
+        // for (String filteredIp : filteredIps) {
+        //     announceBackgroundJob.schedule(new AnnounceService.AnnounceTask(filteredIp, port, infoHash, peerId, uploaded, downloaded, left, event, numWant, user.getId(), compact, noPeerId, supportCrypto, redundant, request.getHeader("User-Agent"), passkey, torrent.getId()));
+        // }
         String peers = BencodeUtil.convertToString(BencodeUtil.bittorrent().encode(generatePeersResponse(torrent, numWant, compact)));
         performanceMonitorService.recordStats(System.nanoTime() - ns);
         return ResponseEntity.ok()
@@ -309,9 +307,13 @@ public class AnnounceController {
     @NotNull
     private Map<String, Object> generatePeersResponseCompat(@NotNull Torrent torrent, int numWant) throws RetryableAnnounceException {
         PeerResult peers = gatherPeers(torrent.getInfoHash(), numWant);
-        TransferHistoryService.PeerStatus peerStatus = transferHistoryService.getPeerStatus(torrent);
+        // TransferHistoryService.PeerStatus peerStatus = transferHistoryService.getPeerStatus(torrent);
+
+        // moke数据
+        TransferHistoryService.PeerStatus peerStatus = new TransferHistoryService.PeerStatus(10, 10, 10, 10);
         Map<String, Object> dict = new HashMap<>();
-        dict.put("interval", randomInterval());
+        // dict.put("interval", randomInterval());
+        dict.put("interval", 30*60);
         dict.put("complete", peerStatus.complete());
         dict.put("incomplete", peerStatus.incomplete());
         dict.put("downloaded", peerStatus.downloaded());
@@ -326,21 +328,32 @@ public class AnnounceController {
     @NotNull
     private Map<String, Object> generatePeersResponseNonCompat(@NotNull Torrent torrent, int numWant, boolean noPeerId) {
         PeerResult peers = gatherPeers(torrent.getInfoHash(), numWant);
-        TransferHistoryService.PeerStatus peerStatus = transferHistoryService.getPeerStatus(torrent);
+        // TransferHistoryService.PeerStatus peerStatus = transferHistoryService.getPeerStatus(torrent);
+        // moke数据
+        TransferHistoryService.PeerStatus peerStatus = new TransferHistoryService.PeerStatus(10, 10, 10, 10);
+
         List<Map<String, Object>> peerList = new ArrayList<>();
         List<Peer> allPeers = new ArrayList<>(peers.peers());
         allPeers.addAll(peers.peers6());
-        for (Peer peer : allPeers) {
-            Map<String, Object> peerMap = new LinkedHashMap<>();
-            if (!noPeerId) {
-                peerMap.put("peer id", peer.getPeerId());
-            }
-            peerMap.put("ip", peer.getIp());
-            peerMap.put("port", peer.getPort());
-            peerList.add(peerMap);
-        }
+        // for (Peer peer : allPeers) {
+        //     Map<String, Object> peerMap = new LinkedHashMap<>();
+        //     if (!noPeerId) {
+        //         peerMap.put("peer id", peer.getPeerId());
+        //     }
+        //     peerMap.put("ip", peer.getIp());
+        //     peerMap.put("port", peer.getPort());
+        //     peerList.add(peerMap);
+        // }
+        Map<String, Object> peerMap = new LinkedHashMap<>();
+        peerMap.put("peer_id","-qB4390-Fe)t)QYORIEM");
+        peerMap.put("ip","192.168.50.227");
+        peerMap.put("port","53459");
+        peerList.add(peerMap);
+
+
         Map<String, Object> dict = new HashMap<>();
-        dict.put("interval", randomInterval());
+        // dict.put("interval", randomInterval());
+        dict.put("interval", 30*60);
         dict.put("complete", peerStatus.complete());
         dict.put("incomplete", peerStatus.incomplete());
         dict.put("downloaded", peerStatus.downloaded());
@@ -368,5 +381,4 @@ public class AnnounceController {
 
     record PeerResult(@NotNull List<Peer> peers, List<Peer> peers6, long complete, long incomplete, int downloaders) {
     }
-
 }

@@ -1,5 +1,5 @@
 redis:
-  host: localhost
+  host: 192.168.50.227
   port: 6379
   database: 3
 spring:
@@ -24,6 +24,7 @@ spring:
           min-idle: 2
           max-active: 8
           max-wait: -1
+      password: jhkdjhkjdhsIUTYURTU_YSNZbA
   quartz:
     job-store-type: jdbc
     wait-for-jobs-to-complete-on-shutdown: true
