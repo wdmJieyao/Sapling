@@ -1,6 +1,6 @@
 redis:
-  host: 192.168.50.227
-  port: 6379
+  host: 157.119.101.82
+  port: 16379
   database: 3
 spring:
   profiles:

@@ -1,6 +1,7 @@
 package com.github.bitsapling.sapling.controller.announce;
 
 import cn.dev33.satoken.stp.StpUtil;
+import com.alibaba.fastjson2.JSON;
 import com.github.bitsapling.sapling.config.TrackerConfig;
 import com.github.bitsapling.sapling.entity.Peer;
 import com.github.bitsapling.sapling.entity.Torrent;
@@ -27,6 +28,7 @@ import com.github.bitsapling.sapling.util.IPUtil;
 import com.github.bitsapling.sapling.util.InfoHashUtil;
 import com.github.bitsapling.sapling.util.MiscUtil;
 import com.github.bitsapling.sapling.util.SafeUUID;
+import com.google.common.collect.Lists;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -183,7 +185,8 @@ public class AnnounceController {
         torrent.setInfoHash(infoHash);
         torrent.setId(127389L);
         Set<String> peerIps = new HashSet<>(peerIp);
-
+        log.info("peerIps.............:{}", peerIps);
+        System.out.println("peerIP>>>>>>>>>>>>>>>>>"+JSON.toJSONString(peerIps));
         // if (ipv4 != null) {
         //     peerIps.addAll(List.of(ipv4));
         // }
@@ -306,11 +309,22 @@ public class AnnounceController {
 
     @NotNull
     private Map<String, Object> generatePeersResponseCompat(@NotNull Torrent torrent, int numWant) throws RetryableAnnounceException {
-        PeerResult peers = gatherPeers(torrent.getInfoHash(), numWant);
+        // PeerResult peers = gatherPeers(torrent.getInfoHash(), numWant);
         // TransferHistoryService.PeerStatus peerStatus = transferHistoryService.getPeerStatus(torrent);
 
         // moke数据
         TransferHistoryService.PeerStatus peerStatus = new TransferHistoryService.PeerStatus(10, 10, 10, 10);
+        Peer peer = new Peer();
+        peer.setId(1);
+        peer.setIp("192.168.50.227");
+        peer.setPort(53459);
+
+        Peer peer6 = new Peer();
+        peer6.setId(2);
+        peer6.setIp("240e:47c:3ab8:21b9:935b:ece7:23fa:1536");
+        peer6.setPort(12346);
+
+        PeerResult peers = new PeerResult(Lists.newArrayList(peer), Lists.newArrayList(peer6), 10, 10, 10);
         Map<String, Object> dict = new HashMap<>();
         // dict.put("interval", randomInterval());
         dict.put("interval", 30*60);
@@ -327,14 +341,14 @@ public class AnnounceController {
 
     @NotNull
     private Map<String, Object> generatePeersResponseNonCompat(@NotNull Torrent torrent, int numWant, boolean noPeerId) {
-        PeerResult peers = gatherPeers(torrent.getInfoHash(), numWant);
+        // PeerResult peers = gatherPeers(torrent.getInfoHash(), numWant);
         // TransferHistoryService.PeerStatus peerStatus = transferHistoryService.getPeerStatus(torrent);
         // moke数据
         TransferHistoryService.PeerStatus peerStatus = new TransferHistoryService.PeerStatus(10, 10, 10, 10);
 
         List<Map<String, Object>> peerList = new ArrayList<>();
-        List<Peer> allPeers = new ArrayList<>(peers.peers());
-        allPeers.addAll(peers.peers6());
+        // List<Peer> allPeers = new ArrayList<>(peers.peers());
+        // allPeers.addAll(peers.peers6());
         // for (Peer peer : allPeers) {
         //     Map<String, Object> peerMap = new LinkedHashMap<>();
         //     if (!noPeerId) {

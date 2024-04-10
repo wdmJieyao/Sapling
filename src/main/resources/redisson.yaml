@@ -1,2 +1,2 @@
 singleServerConfig:
-  address: "redis://:jhkdjhkjdhsIUTYURTU_YSNZbA@192.168.50.227:6379"
+  address: "redis://:jhkdjhkjdhsIUTYURTU_YSNZbA@157.119.101.82:16379"
